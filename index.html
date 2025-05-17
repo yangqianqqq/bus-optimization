@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>475路公交线网优化专题报告</title>
+    <script src="https://cdn.staticfile.org/echarts/5.4.0/echarts.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --transition-speed: 0.3s;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: '微软雅黑', sans-serif;
+        }
+        body {
+            background: #f5f7fa;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .navbar {
+            background: var(--primary-color);
+            color: white;
+            padding: 1.2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .accordion {
+            margin: 2rem 0;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+        }
+        .accordion-item {
+            border-bottom: 1px solid #e1e5eb;
+        }
+        .accordion-header {
+            background: #f8f9fa;
+            padding: 1.2rem 1.5rem;
+            cursor: pointer;
+            transition: all var(--transition-speed) ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .accordion-header:hover {
+            background: #e9ecef;
+        }
+        .accordion-header h2 {
+            margin: 0;
+            font-size: 1.2rem;
+            color: var(--primary-color);
+            border-left: none;
+            padding-left: 0;
+        }
+        .accordion-header span {
+            transition: transform var(--transition-speed) ease;
+            font-size: 1rem;
+        }
+        .accordion-content {
+            background: white;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height var(--transition-speed) ease-out;
+        }
+        .accordion-content-inner {
+            padding: 0;
+        }
+        .accordion-content.active {
+            max-height: 2000px;
+        }
+        .accordion-content.active .accordion-content-inner {
+            padding: 1.5rem;
+        }
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+        }
+        .data-table th, 
+        .data-table td {
+            border: 1px solid #dee2e6;
+            padding: 12px;
+            text-align: center;
+        }
+        .data-table th {
+            background: #f8f9fa;
+        }
+        .chart-container {
+            height: 400px;
+            margin: 1.5rem 0;
+        }
+        .visual-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin: 1.5rem 0;
+        }
+        @media (max-width: 768px) {
+            .container { padding: 10px; }
+            .accordion-header { padding: 1rem; }
+            .chart-container { height: 300px; }
+            .visual-group { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <h1>重庆475路公交线网优化专题报告（选题一）</h1>
+    </nav>
+
+    <div class="container">
+        <div class="accordion">
+            <!-- 现状分析模块 -->
+            <div class="accordion-item">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <h2>现状分析（晚高峰17:00-19:00）</h2>
+                    <span>▼</span>
+                </div>
+                <div class="accordion-content">
+                    <div class="accordion-content-inner">
+                        <div class="chart-container" id="mainChart"></div>
+                        <table class="data-table">
+                            <tr><th>方向</th><th>站点名称</th><th>站距(km)</th><th>上车人数</th><th>下车人数</th></tr>
+                            <tr><td rowspan="5">上行</td><td>四公里</td><td>0.62</td><td>9</td><td>0</td></tr>
+                            <tr><td>海峡路口</td><td>0.68</td><td>3</td><td>1</td></tr>
+                            <tr><td>谢家湾</td><td>0.74</td><td>4</td><td>8</td></tr>
+                            <tr><td>杨家坪</td><td>3.3</td><td>2</td><td>7</td></tr>
+                            <tr><td colspan="2">单程总站距</td><td>13.8km</td><td>总上车32人</td><td>总下车29人</td></tr>
+                            <tr><td rowspan="5">下行</td><td>四公里</td><td>0.62</td><td>4</td><td>26</td></tr>
+                            <tr><td>海峡路口</td><td>0.68</td><td>12</td><td>5</td></tr>
+                            <tr><td>谢家湾正街南段</td><td>4.4</td><td>11</td><td>0</td></tr>
+                            <tr><td>杨家坪西郊</td><td>1.2</td><td>7</td><td>0</td></tr>
+                            <tr><td colspan="2">单程总站距</td><td>15.2km</td><td>总上车46人</td><td>总下车45人</td></tr>
+                        </table>
+                        <table class="data-table">
+                            <tr><th>问题类型</th><th>具体表现</th><th>数据支撑</th></tr>
+                            <tr><td>站点压力不均衡</td><td>四公里站下行下车26人/车次</td><td>下车量超均值3倍</td></tr>
+                            <tr><td>线路绕行严重</td><td>海峡路-麦德龙站距2.9km</td><td>站距超均值2.5倍</td></tr>
+                            <tr><td>资源利用低效</td><td>八公里站上下车量为0</td><td>晚高峰无乘客使用</td></tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 优化方案模块 -->
+            <div class="accordion-item">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <h2>线网优化方案</h2>
+                    <span>▼</span>
+                </div>
+                <div class="accordion-content">
+                    <div class="accordion-content-inner">
+                        <table class="data-table">
+                            <tr><th>方案</th><th>主要内容</th><th>预期效益</th></tr>
+                            <tr><td>方案A<br>(站点优化)</td>
+                                <td>1. 拆分四公里站为南北两站<br>2. 新增南岸行政中心站</td>
+                                <td>站点覆盖率提升至90%</td></tr>
+                            <tr><td>方案B<br>(线路截直)</td>
+                                <td>1. 取消海峡路绕行段(2.9km)<br>2. 合并低效站点</td>
+                                <td>单程时间减少8分钟</td></tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 方案对比模块 -->
+            <div class="accordion-item">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <h2>方案对比分析</h2>
+                    <span>▼</span>
+                </div>
+                <div class="accordion-content">
+                    <div class="accordion-content-inner">
+                        <div class="chart-container" id="compareChart"></div>
+                        <table class="data-table">
+                            <tr><th>评价指标</th><th>权重</th><th>方案A</th><th>方案B</th></tr>
+                            <tr><td>服务性(覆盖率)</td><td>40%</td><td>92%</td><td>85%</td></tr>
+                            <tr><td>经济性(成本)</td><td>35%</td><td>+12万/年</td><td>-8万/年</td></tr>
+                            <tr><td>实施难度</td><td>25%</td><td>中等</td><td>较高</td></tr>
+                        </table>
+                        <div class="visual-group">
+                            <div class="chart-container" id="effectChart"></div>
+                            <div class="chart-container" id="costChart"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 局限性模块 -->
+            <div class="accordion-item">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <h2>实施局限性</h2>
+                    <span>▼</span>
+                </div>
+                <div class="accordion-content">
+                    <div class="accordion-content-inner">
+                        <table class="data-table">
+                            <tr><th>限制因素</th><th>方案A影响</th><th>方案B影响</th></tr>
+                            <tr><td>政策审批</td><td>需3个月审批周期</td><td>需道路改造许可</td></tr>
+                            <tr><td>成本投入</td><td>新增站台建设费5万/站</td><td>交通标识改造费3.5万</td></tr>
+                            <tr><td>技术难点</td><td>导航系统同步更新</td><td>潮汐车道控制系统</td></tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 折叠面板交互
+        function toggleAccordion(header) {
+            const content = header.nextElementSibling;
+            const isActive = content.classList.contains('active');
+            
+            // 关闭所有面板
+            document.querySelectorAll('.accordion-content').forEach(item => {
+                item.classList.remove('active');
+                item.previousElementSibling.querySelector('span').textContent = '▼';
+            });
+            
+            // 如果点击的不是当前打开的面板，则打开它
+            if (!isActive) {
+                content.classList.add('active');
+                header.querySelector('span').textContent = '▲';
+                
+                // 动态计算内容高度
+                const innerContent = content.querySelector('.accordion-content-inner');
+                content.style.maxHeight = innerContent.scrollHeight + 'px';
+            }
+        }
+
+        // 初始化图表
+        const mainChart = echarts.init(document.getElementById('mainChart'));
+        mainChart.setOption({
+            title: { text: '关键站点客流分析', left: 'center' },
+            tooltip: { trigger: 'axis' },
+            xAxis: {
+                type: 'category',
+                data: ['四公里', '海峡路口', '谢家湾', '杨家坪']
+            },
+            yAxis: { type: 'value' },
+            series: [{
+                name: '上车量',
+                type: 'bar',
+                data: [9, 3, 4, 2],
+                itemStyle: { color: '#3498db' }
+            },{
+                name: '下车量',
+                type: 'bar',
+                data: [26, 5, 8, 7],
+                itemStyle: { color: '#2ecc71' }
+            }]
+        });
+
+        const compareChart = echarts.init(document.getElementById('compareChart'));
+        compareChart.setOption({
+            title: { text: '方案多维对比', left: 'center' },
+            radar: {
+                indicator: [
+                    { name: '服务性', max: 100 },
+                    { name: '经济性', max: 100 },
+                    { name: '可行性', max: 100 }
+                ]
+            },
+            series: [{
+                type: 'radar',
+                data: [
+                    { name: '方案A', value: [92, 60, 70] },
+                    { name: '方案B', value: [85, 85, 65] }
+                ]
+            }]
+        });
+
+        const effectChart = echarts.init(document.getElementById('effectChart'));
+        effectChart.setOption({
+            title: { text: '优化方案关键指标对比', left: 'center' },
+            tooltip: { trigger: 'axis' },
+            xAxis: {
+                type: 'category',
+                data: ['候车时间', '运营成本', '站点覆盖率', '单程时间']
+            },
+            yAxis: { type: 'value' },
+            series: [
+                {
+                    name: '优化前',
+                    type: 'bar',
+                    data: [15, 105, 75, 42],
+                    itemStyle: { color: '#95a5a6' }
+                },
+                {
+                    name: '方案A',
+                    type: 'bar',
+                    data: [9, 118, 92, 38],
+                    itemStyle: { color: '#3498db' }
+                },
+                {
+                    name: '方案B',
+                    type: 'bar',
+                    data: [10, 97, 85, 35],
+                    itemStyle: { color: '#2ecc71' }
+                }
+            ]
+        });
+
+        const costChart = echarts.init(document.getElementById('costChart'));
+        costChart.setOption({
+            title: { text: '方案B成本构成分析', left: 'center' },
+            tooltip: { trigger: 'item', formatter: '{b}: {c}万元 ({d}%)' },
+            series: [{
+                type: 'pie',
+                radius: ['40%', '70%'],
+                data: [
+                    { value: 3.5, name: '交通标识改造' },
+                    { value: 2.1, name: '站牌更新' },
+                    { value: 1.8, name: '系统升级' },
+                    { value: 0.6, name: '其他' }
+                ],
+                itemStyle: {
+                    borderRadius: 5,
+                    borderColor: '#fff',
+                    borderWidth: 2,
+                    color: function(params) {
+                        const colors = ['#3498db', '#2ecc71', '#e74c3c', '#f1c40f'];
+                        return colors[params.dataIndex];
+                    }
+                },
+                label: { show: true, formatter: '{b}: {d}%' }
+            }]
+        });
+
+        // 响应式调整
+        window.addEventListener('resize', function() {
+            mainChart.resize();
+            compareChart.resize();
+            effectChart.resize();
+            costChart.resize();
+            
+            // 重新计算打开的面板高度
+            document.querySelectorAll('.accordion-content.active').forEach(item => {
+                const innerContent = item.querySelector('.accordion-content-inner');
+                item.style.maxHeight = innerContent.scrollHeight + 'px';
+            });
+        });
+
+        // 默认打开第一个面板
+        document.querySelector('.accordion-header').click();
+    </script>
+</body>
+</html>
